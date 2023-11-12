@@ -1,5 +1,7 @@
 const Imap = require('imap');
 const { simpleParser } = require('mailparser');
+const { writeFile, existsSync, mkdirSync } = require('fs');
+const { join } = require('path');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -21,16 +23,32 @@ const getEmails = () => {
       imap.once('ready', () => {
         imap.openBox(folder, false, () => {
           imap.search(['UNSEEN'], (err, results) => {
-            const f = imap.fetch(results, {
+            const fetch = imap.fetch(results, {
               bodies: ''
             });
 
-            f.on('message', (msg) => {
+            fetch.on('message', (msg, seqno) => {
               msg.on('body', (stream) => {
                 count++;
-                simpleParser(stream, async (err, parsed) => {
-                  console.log('----------------------');
-                  console.log('From: ' + parsed.from.text + ' -> ' + parsed.text);
+                simpleParser(stream, (err, parsed) => {
+                  if (err) throw err;
+
+                  const emailBody = parsed.text;
+                  const subject = parsed.subject || 'No Subject';
+
+                  const folderName = seqno + '_' + subject.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                  const folderPath = join(__dirname, 'emails', folderName);
+
+                  if (!existsSync(folderPath)) {
+                    mkdirSync(folderPath);
+                  }
+
+                  const fileName = join(folderPath, 'body.txt');
+                  writeFile(fileName, emailBody, function (err) {
+                    if (err) throw err;
+                    console.log(`Email body saved to ${fileName}`);
+                  });
+
                 });
               });
 
@@ -42,11 +60,11 @@ const getEmails = () => {
               });
             });
 
-            f.once('error', (err) => {
+            fetch.once('error', (err) => {
               return Promise.reject(err);
             });
 
-            f.once('end', () => {
+            fetch.once('end', () => {
               console.log('Done fetching all messages');
               imap.end();
             });
