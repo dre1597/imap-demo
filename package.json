@@ -1,0 +1,19 @@
+{
+  "name": "imap-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --watch --env-file=.env src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "imap": "^0.8.19",
+    "mailparser": "^3.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0"
+  }
+}
