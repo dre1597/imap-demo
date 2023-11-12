@@ -33,6 +33,10 @@ const getEmails = () => {
                 simpleParser(stream, (err, parsed) => {
                   if (err) throw err;
 
+                  const messageId = parsed.messageId;
+                  const messageDate = parsed.date;
+                  console.log(`Message ${count}: ${messageId} (${messageDate.toISOString()})`);
+
                   const emailBody = parsed.text;
                   const subject = parsed.subject || 'No Subject';
 
@@ -52,11 +56,11 @@ const getEmails = () => {
                 });
               });
 
-              msg.once('attribute', (attrs) => {
-                const { uid } = attrs;
-                imap.addFlags(uid, ['\\Seen'], () => {
-                  console.log('Marked as read');
-                });
+              msg.once('attributes', (attrs) => {
+                // const { uid } = attrs;
+                // imap.addFlags(uid, ['\\Seen'], () => {
+                //   console.log('Marked as read');
+                // });
               });
             });
 
